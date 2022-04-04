@@ -33,7 +33,8 @@ $routes->setAutoRoute(true);
 // route since we don't have to scan directories.
 $routes->get('/', 'Home::index');
 $routes->get('/interfaces', 'Home::interfaces');
-$routes->get('/leases', 'Home::userAct');
+$routes->get('/dhcpBound', 'Home::dhcpBound');
+$routes->get('/defRoute', 'Home::defRoute');
 
 /*
  * --------------------------------------------------------------------

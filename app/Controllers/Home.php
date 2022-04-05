@@ -8,11 +8,11 @@ use PhpParser\Node\Stmt\Return_;
 class Home extends BaseController
 {
 
-    protected $data, $miktik_conn;
+    protected $data, $miktik_conn, $validation;
 
     function __construct()
     {
-
+        $this->validation =  \Config\Services::validation();
         $obj = new Miktik();
         if ($obj->connect('192.168.11.126', 'user1', 'user1'))
         {
@@ -23,8 +23,25 @@ class Home extends BaseController
 
     public function index()
     {
-        return view("Home");
+        helper('url');
+        if (! $this->validate([
+            'ip_mikrotik' => 'required',
+            'username' => 'required',
+            'password' => 'required',
+        ])) {
+            echo view('login_page', [
+                'validation' => $this->validator,
+            ]);
+        } else {
+            echo view('home');
+        }
+        // return view("login_page");
 
+    }
+
+    public function home()
+    {
+        return view("home");
     }
 
     public function defRoute()

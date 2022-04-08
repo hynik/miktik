@@ -2,7 +2,7 @@
 
 <?= $this->section('login_page') ?>
 
-<?= $validation->listErrors() ?>
+<?= $validation->listErrors('my_list') ?>
 
 <div class="register-box">
     <div class="register-logo">
@@ -13,7 +13,7 @@
         <div class="card-body register-card-body">
             <p class="login-box-msg">Login dengan akun mikrotik anda</p>
 
-            <form action="" method="post">
+            <form action="<?= base_url('Home')?>" method="post">
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" name="ip_mikrotik" placeholder="IP Mikrotik">
                     <div class="input-group-append">

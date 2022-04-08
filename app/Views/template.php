@@ -5,26 +5,25 @@
     <?= view("_partials/head") ?>
 </head>
 
-<body class="hold-transition register-page" id="page-top">
+<body class="hold-transition <?= ($_SESSION['logged']) ? 'dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed' : 'register-page' ?>" id="page-top">
 
-
-    <?= $this->renderSection('login_page') ?>
-
-
-    <?php if (false) : ?>
+    <?php if ($_SESSION['logged']) : ?>
+    
     <div class="wrapper">
         <?= view("_partials/navbar.php"); ?>
         <?= view("_partials/sidebar.php"); ?>
 
         <div class="content-wrapper">
             <?= view("_partials/content_header.php"); ?>
-            <section class="container">
+            <section class="content">
                 <div class="container-fluid">
                     <?= $this->renderSection('content') ?>
                 </div>
             </section>
         </div>
     </div>
+    <?php else : ?>
+        <?= $this->renderSection('login_page') ?>
     <?php endif ?>
 
 

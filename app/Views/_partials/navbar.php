@@ -1,5 +1,5 @@
 <!-- Navbar -->
-<nav class="main-header navbar navbar-expand navbar-white navbar-light">
+<nav class="main-header navbar navbar-expand navbar-dark">
     <!-- Left navbar links -->
     <ul class="navbar-nav">
         <li class="nav-item">
@@ -74,6 +74,11 @@
                 <i class="fas fa-expand-arrows-alt"></i>
             </a>
         </li>
+        <div class="nav-item">
+            <a href="<?= base_url('/logout') ?>" class="nav-link">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </a>
+        </div>
     </ul>
 </nav>
 <!-- /.navbar -->

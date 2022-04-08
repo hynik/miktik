@@ -8,40 +8,68 @@ use PhpParser\Node\Stmt\Return_;
 class Home extends BaseController
 {
 
-    protected $data, $miktik_conn, $validation;
+    protected $data, 
+    $miktik_conn, 
+    $validation, 
+    $request,
+    $session;
 
     function __construct()
     {
         $this->validation =  \Config\Services::validation();
-        $obj = new Miktik();
-        if ($obj->connect('192.168.11.126', 'user1', 'user1'))
-        {
-            $this->miktik_conn = $obj;
-        }
-
+        $this->request = \Config\Services::request();
+        $this->session = \Config\Services::session();
+        $this->session->setTempdata('logged', false, 600);
     }
 
     public function index()
     {
-        helper('url');
+        // dd($this->session->getTempdata('logged'));
+        if ($this->session->getTempdata('logged')){
+            return view('home');
+        }else{
+            return view('login_page', [
+                'validation' => $this->validation
+            ]);
+        }
+    }
+
+    public function attempLogin()
+    {
         if (! $this->validate([
             'ip_mikrotik' => 'required',
             'username' => 'required',
             'password' => 'required',
         ])) {
-            echo view('login_page', [
+            return view('login_page', [
                 'validation' => $this->validator,
             ]);
         } else {
-            echo view('home');
+            // $obj = new Miktik();
+            // if ($obj->connect('192.168.11.126', 'user1', 'user1'))
+            // {
+            //     $this->miktik_conn = $obj;
+            // }
+            $this->session->setTempdata('logged', true, 600);
+            // $this->session->set('logged');
+            $this->session->markAsTempdata($this->request->getPost(), 600);
+            // dd($_SESSION);
+            return view('home');
         }
-        // return view("login_page");
-
     }
 
-    public function home()
+    public function logout()
     {
-        return view("home");
+        dd($this->session->getTempdata('logged'));
+        // if ($this->session->getTempdata('logged')){
+        // }
+        $this->session->removeTempdata('ip_mikrotik');
+        $this->session->removeTempdata('username');
+        $this->session->removeTempdata('password');
+        // $this->session->setTempdata('logged', false);
+        return view('/login_page', [
+            'validation' => $this->validation
+        ]);
     }
 
     public function defRoute()

@@ -5,9 +5,9 @@
     <?= view("_partials/head") ?>
 </head>
 
-<body class="hold-transition <?= ($_SESSION['logged']) ? 'dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed' : 'register-page' ?>" id="page-top">
+<body class="hold-transition <?= (session('logged')) ? 'dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed' : 'register-page' ?>" id="page-top">
 
-    <?php if ($_SESSION['logged']) : ?>
+    <?php if (session('logged')) : ?>
     
     <div class="wrapper">
         <?= view("_partials/navbar.php"); ?>

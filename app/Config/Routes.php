@@ -32,10 +32,10 @@ $routes->setAutoRoute(true);
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
 $routes->get('/', 'Home::index');
-$routes->get('/dhcpBound', 'Home::dhcpBound');
-$routes->get('/defRoute', 'Home::defRoute');
+$routes->get('/dhcpBound/(:any)', 'Home::dhcpBound/$1');
+$routes->get('/defRoute', 'Home::resources');
 $routes->get('/logout', 'Home::logout');
-$routes->post('/Home', 'Home::attempLogin');
+$routes->post('/login', 'Home::attempLogin');
 
 /*
  * --------------------------------------------------------------------

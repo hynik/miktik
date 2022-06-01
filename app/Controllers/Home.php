@@ -9,24 +9,44 @@ class Home extends BaseController
 {
 
     protected $data, 
-    $miktik_conn, 
     $validation, 
     $request,
-    $session;
+    $session,
+    $miktik;
 
     function __construct()
     {
         $this->validation =  \Config\Services::validation();
         $this->request = \Config\Services::request();
-        $this->session = \Config\Services::session();
-        $this->session->setTempdata('logged', false, 600);
+        $this->miktik = new Miktik();
+
+        $this->data = [
+            'title' => 'Dashboard Miktik'
+        ];
+
+        session()->setTempdata('logged_api', false);
+        session()->setTempdata('logged', false);
+
+        if (!empty(session()->getTempdata())){
+
+            if ($this->miktik->connect(
+                session()->getTempdata('ip_mikrotik'),
+                session()->getTempdata('username'),
+                session()->getTempdata('password')
+            )){
+                session()->setTempdata('logged_api', true);
+                $this->miktik = $this->miktik;
+            }
+        }
     }
 
     public function index()
     {
-        // dd($this->session->getTempdata('logged'));
-        if ($this->session->getTempdata('logged')){
-            return view('home');
+
+        $this->data = ['title' => 'Selamat Datang'];
+
+        if (session()->getTempdata('logged')){
+            return view('home', $this->data);
         }else{
             return view('login_page', [
                 'validation' => $this->validation
@@ -45,28 +65,29 @@ class Home extends BaseController
                 'validation' => $this->validator,
             ]);
         } else {
-            // $obj = new Miktik();
-            // if ($obj->connect('192.168.11.126', 'user1', 'user1'))
-            // {
-            //     $this->miktik_conn = $obj;
-            // }
-            $this->session->setTempdata('logged', true, 600);
-            // $this->session->set('logged');
-            $this->session->markAsTempdata($this->request->getPost(), 600);
-            // dd($_SESSION);
-            return view('home');
+
+            //menambahkan data session untuk status login
+            foreach($this->request->getPost() as $key => $val){
+                session()->setTempdata($key, $val, 600);
+            }
+
+            //set key logged as true
+            session()->setTempdata('logged', true, 600);
+
+            return view('home', $this->data);
+            
         }
     }
 
     public function logout()
     {
-        dd($this->session->getTempdata('logged'));
-        // if ($this->session->getTempdata('logged')){
-        // }
-        $this->session->removeTempdata('ip_mikrotik');
-        $this->session->removeTempdata('username');
-        $this->session->removeTempdata('password');
-        // $this->session->setTempdata('logged', false);
+
+        session()->setTempdata([
+            'logged' => false,
+            'logged_api' => false
+        ]);
+        $this->miktik->disconnect();
+
         return view('/login_page', [
             'validation' => $this->validation
         ]);
@@ -74,51 +95,66 @@ class Home extends BaseController
 
     public function defRoute()
     {
-        $d = $this->miktik_conn->comm("/ip/route/print", array(
-            "where" => "",
-            "?dst-address" => "0.0.0.0/0",
-            "?active" => "true",
-        ));
+        if (session()->getTempdata('logged_api')){
 
-        $interface = explode("via ", $d[0]['gateway-status'])[1];
-
-        $ip_public = $this->miktik_conn->comm("/ip/address/print", array(
-            "where" => "",
-            "?interface" => $interface,
-        ));
-
-        var_dump($ip_public);
-
-        // for ($i=0; $i < 9; $i++){
+            $d = $this->miktik->comm("/ip/route/print", array(
+                "where" => "",
+                "?dst-address" => "0.0.0.0/0",
+                "?active" => "true",
+            ));
+    
+            $interface = explode("via ", $d[0]['gateway-status'])[1];
+    
+            $ip_public = $this->miktik->comm("/ip/address/print", array(
+                "where" => "",
+                "?interface" => str_replace(" ", "", $interface),
+            ));
             
-        //     if ($d[$i]['dst-address'] == "0.0.0.0/0" and $d[$i]['active'] == "true"){
-        //         echo json_encode($d[$i]);
-        //     }
-        // }
+            $a = [
+                'status' => 200,
+                'ip' => explode("/", $ip_public[0]['address'])[0],
+                'interface' => str_replace(" ", "", $interface)
+            ];
 
-        $this->miktik_conn->disconnect();
-    }
+            $this->data['defRoute'] = $a;
 
-    public function interfaces()
-    {
-        if ($this->miktik_conn->write("/interface/print")){
-            echo json_encode($this->miktik_conn->comm("/interface/print"));
+            return json_encode($a);
+        }else{
+            return json_encode([
+                'status' => 401,
+                'message' => "anda belum login"
+            ]);
         }
 
-        $this->miktik->disconnect();
-
     }
 
-    public function dhcpBound()
+    public function dhcpBound(String $server = null)
     {
-        $usrAct = $this->miktik_conn->comm("/ip/dhcp-server/lease/print", array(
-            "where" => "",
-            "?status" => "bound",
-            "?server" => "dhcp4"
-            // "without-paging" => "",
-            // "active" => ""
-        ));
 
-        var_dump($usrAct);
+        if (session()->getTempdata('logged_api')){
+            
+            $usrAct = $this->miktik->comm("/ip/dhcp-server/lease/print", array(
+                "where" => "",
+                "?status" => "bound",
+                // "?server" => nullN
+            ));
+    
+            dd($usrAct);
+        }
+    }
+
+    public function resources()
+    {
+        if (session()->getTempdata('logged_api')){
+            
+            $resources = $this->miktik->comm("/system/resources/print");
+
+            var_dump($resources);
+        }else{
+            return json_encode([
+                'status' => 401,
+                'message' => "anda belum login"
+            ]);
+        }
     }
 }
